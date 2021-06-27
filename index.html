@@ -3,20 +3,20 @@
 <head>
 <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>-->
 <script src="./jquery.min.js"></script>
+<script src="./jquery.color-2.1.0.min.js"></script>
 <meta charset=utf-8 />
 <title>Boggle</title>
 
 <style id="jsbin-css">
 
-body {
+html, body {
 font-family: Geneva, Tahoma, Verdana, sans-serif;
-
+height: 100%;
+width: 100%;
 }
 
 #dice {
-//	transform: rotate(45deg);
-//	-ms-transform: rotate(45deg);
-//	-webkit-transform: rotate(45deg);
+ //width: 30%;
 }
 
 .cell {
@@ -32,7 +32,16 @@ font-family: Geneva, Tahoma, Verdana, sans-serif;
   border: 2px inset black;
 }
 
-input.cellInput {
+
+
+span.highlighted {
+  background-color: yellow;
+}
+
+
+
+input.cellInput { 
+  background-color:inherit;
   font-family:inherit;
   display:block;
   //line-height:inherit;
@@ -65,12 +74,46 @@ input.cellInput {
  float: left;
  margin-right: 20px;
 }
+
+
+#wordList span {
+  overflow: auto;
+}
+
 #right {
  float: left;
  -moz-column-count: 4;
  -webkit-column-count: 4;
- column-count: 4;
+  column-count; 4;
+  overflow: auto;
+  height: 100%;
+  width: 70%;
 }
+
+@media (max-width: 900px) {
+      #right{
+        column-count:3;
+        -webkit-column-count:3; /* Safari and Chrome */
+        -moz-column-count: 3; /* Firefox */
+    }
+}
+
+@media (max-width: 600px) {
+      #right{
+        column-count:2;
+        -webkit-column-count:2; /* Safari and Chrome */
+        -moz-column-count: 2; /* Firefox */
+    }
+}
+
+@media (max-width: 300px) {
+      #right{
+        column-count:1;
+        -webkit-column-count:1; /* Safari and Chrome */
+        -moz-column-count: 1; /* Firefox */
+    }
+}
+
 .length-short {
 
 }
@@ -112,16 +155,21 @@ input.cellInput {
   </div>
 <script>
 var boggleWords;
-var letterGrid =
-    [['O','L','C','R'],
-    ['C','E','S','E'],
-    ['K','W','I','T'],
-    ['C','O','U','N']];
 
-var dice = ["AAEEGN","ELRTTY","AOOTTW","ABBJOO","EHRTVW","CIMOTU",
-            "DISTTY","EIOSST","DELRVY","ACHOPS","HIMNQU","EEINSU",
-            "EEGHNW","AFFKPS","HLNNRZ","DEILRX"];
-    
+letterGrid =
+    [['O','L','C','R','A'],
+    ['C','E','S','E','B',],
+    ['K','W','I','T','C',],
+    ['C','O','U','N','D'],
+	['C','O','U','N','D']];
+
+			
+dice = ["AAAFRS",  "AAEEEE",  "AAFIRS",  "ADENNN",  "AEEEEM",  
+"AEEGMU",  "AEGMNN",  "AFIRSY",  "BJKQXZ",  "CCENST",  
+"CEIILT",  "CEILPT",  "CEIPST",  "DDHNOT",  "DHHLOR",  
+"DHLNOR",  "DHLNOR",  "EIIITT",  "EMOTTT",  "ENSSSU",  
+"FIPRSY",  "GORRVW",  "IPRRRY",  "NOOTUW",  "OOOTTU"];
+	
 var trie = null;
 
 var showDice = function(letterGrid) {
@@ -129,8 +177,8 @@ var showDice = function(letterGrid) {
   div.empty();
   for (var i=0; i<letterGrid.length; i++) {      
     var row = $('<div class="row"/>');
-    for (var j=0; j<letterGrid[i].length; j++) {
-       var cell = $('<div class="cell"/>');
+    for (var j=0; j<letterGrid[i].length; j++) {       
+	   var cell = $('<div class="cell" id="cell_'+i+'_'+j+'"/>');
        var angle = "rotate("+(Math.floor(Math.random()*4)*90)+"deg)";
        
        var char = letterGrid[i][j].toUpperCase();
@@ -156,19 +204,9 @@ var showDice = function(letterGrid) {
 };
 showDice(letterGrid);
 
-
-var editDice = function() {
-   var div = $('#dice');
-  div.empty();
-  for (var i=0; i<letterGrid.length; i++) {      
-    var row = $('<div class="row"/>');
-    for (var j=0; j<letterGrid[i].length; j++) {
-       var cell = $('<div class="cell"/>');
-       var char = letterGrid[i][j].toUpperCase();
-       if (char==='Q') char="Qu";
-      var inp = $('<input maxlength="2" class="cellInput"/>');
-      inp.val(char);
-      inp.change((function(ii,jj){return function(event){
+var updateGridFromDie = function() {
+		var ii = $(this).data('i');
+		var jj = $(this).data('j');
 		var prev = letterGrid[ii][jj];
 		var next = $(this).val().charAt(0).toUpperCase();
 		if (!(/[A-Z]/.test(next))) {
@@ -180,8 +218,21 @@ var editDice = function() {
 		}
 		if (next=='Q') next='Qu';
 		$(this).val(next);
-		
-      }})(i,j));	  
+}
+var editDice = function() {
+   var div = $('#dice');
+  div.empty();
+  for (var i=0; i<letterGrid.length; i++) {      
+    var row = $('<div class="row"/>');
+    for (var j=0; j<letterGrid[i].length; j++) {
+       var cell = $('<div class="cell" id="cell_'+i+'_'+j+'"/>');
+       var char = letterGrid[i][j].toUpperCase();
+       if (char==='Q') char="Qu";
+      var inp = $('<input maxlength="2" class="cellInput"/>');
+      inp.val(char);
+	  inp.data('i',i);
+	  inp.data('j',j);	  
+      inp.change(updateGridFromDie);	  
 	   inp.focus(function(){$(this).select();});
        cell.append(inp);
        row.append(cell);
@@ -201,11 +252,12 @@ $('#stopEdit').click(function(e){
 $('#shuffle').click(function(e){
   
   var myDice = dice.slice(0);
+  var oldGrid = letterGrid;
   letterGrid=[];
  
-  for (var i=0; i<4; i++) {
+  for (var i=0; i<oldGrid.length; i++) {
     letterGrid.push([]);
-  for (var j=0; j<4; j++) {
+  for (var j=0; j<oldGrid[i].length; j++) {
      var die = myDice.splice(Math.floor(Math.random()*myDice.length),1)[0];
       letterGrid[i][j]=die.charAt(Math.floor(Math.random()*die.length));
     }
@@ -215,20 +267,51 @@ $('#shuffle').click(function(e){
   showDice(letterGrid);
 });
 
+var canAnimate = false;
+var showWordOnGrid = function(indices) {
+  canAnimate = true;
+  var promises = [];
+  var colorOff = 'transparent';
+  var colorOn = 'yellow';
+  $('#dice div.cell').css('background-color','#ccc');
+  for (var i=0; i<indices.length; i++) {
+    var step=333;
+    var cell = $('#cell_'+indices[i][0]+'_'+indices[i][1]);	
+	cell.css('background-color',colorOff);
+	promises.push(cell.animate({'background-color':colorOff},i*step).animate({'background-color':colorOn},step).animate({'background-color':colorOn},step).animate({'background-color':colorOff},step).promise());
+  }
+  var thiss = $(this);
+  $.when.apply(null,promises).done(function(){
+    if (canAnimate) showWordOnGrid(indices);
+  });
+}
+var stopShowingWordsOnGrid = function() {
+    canAnimate = false;	
+	$('#dice div.cell').stop(true,true).css('background-color','transparent');
+	$(this).removeClass('highlighted');
+};
+
 $('#button').click(function(event){
   
   if (trie === null) {
   var words = boggleWords.split(/[\s\n\r]+/);
   trie = makeTrie(words);
   }
-     var wordList = findWordsFromGrid(letterGrid,trie);
-     wordList = prepareWordList(wordList);
+     var wordSet = findWordsFromGrid(letterGrid,trie);
+     var wordList = prepareWordList(wordSet);
   var div = $('<div/>');
  
   for (var k=0; k<wordList.length; k++) {
      var wordLength = wordList[k].length;
 	 var clazz = wordLength<5 ? 'short' : wordLength<7 ? 'medium' : wordLength<9 ? 'long' : wordLength<11 ? 'verylong' : 'crazylong';
-     $('<span/>').text(wordList[k].replace(/q/ig,'Qu')).addClass("length-"+clazz).appendTo(div);
+     $('<span/>')
+	   .text(wordList[k].replace(/q/ig,'Qu'))
+	   .addClass("length-"+clazz)
+	   .hover((function(indices){return function(){
+	      $(this).addClass('highlighted');
+	      showWordOnGrid(indices);
+		};})(wordSet[wordList[k]]),stopShowingWordsOnGrid)
+	   .appendTo(div);
     $('<br/>').appendTo(div);
   }
   $('#wordList').empty().append(div);
@@ -287,7 +370,7 @@ for (r=0; r<letterGrid.length; r++) {
   return wordList;
 };
 
-var neighbors = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1]];
+var neighbors = [[-1,-1],[1,-1],[-1,1],[1,1],[-1,0],[0,1],[1,0],[0,-1]];
 
 var findWordsStartingWith = function(wordList, codeGrid, usedGrid, usedIndices, subTrie) {
   var r;
@@ -299,7 +382,7 @@ var c;
      var char = String.fromCharCode(codeGrid[usedIndices[i][0]][usedIndices[i][1]]+65);
       s+=char;        
     }
-    wordList[s]=true;
+    wordList[s]=usedIndices.slice(0);
   }
   
   if (!subTrie.hasWords) return wordList;
@@ -322,29 +405,17 @@ var c;
   
 };
 
-var prepareWordList = function(wordList) {
-
-  var retList=[];
-  
-  for (var key in wordList) {
-    if (wordList.hasOwnProperty(key)) retList.push(key);
+var prepareWordList = function(wordSet) {
+  var retList=[];  
+  for (var key in wordSet) {
+    if (wordSet.hasOwnProperty(key)) retList.push(key);
   }
-  
   retList.sort(function(a,b){
-    //var c = a.length-b.length;
-    //if (c!==0) return c;
     if (a<b) return -1;
     if (a>b) return 1;
     return 0;
   });
-
-  /*
-  for (var i=0; i<retList.length; i++) {
-    retList[i]=retList[i].replace(/q/ig,'Qu');
-  }
-  */
   return retList;
-  
 };
 
 
